@@ -1,7 +1,10 @@
+#http://scikit-learn.org/0.15/modules/model_evaluation.html#multiclass-and-multilabel-classification
+
 def hamming_score(y_true, y_pred, normalize=True, sample_weight=None):
     '''
     Compute the Hamming score (a.k.a. label-based accuracy) for the multi-label case
     https://stackoverflow.com/q/32239577/395857
+    
     '''
     acc_list = []
     for i in range(y_true.shape[0]):
