@@ -20,3 +20,36 @@ preds[preds>=0.5] = 1
 preds[preds<0.5] = 0
 
 print f1_score(ys, preds, average='macro')
+
+out = model.predict_proba(x_test)
+out = np.array(out)
+
+threshold = np.arange(0.1,0.9,0.1)
+
+acc = []
+accuracies = []
+best_threshold = np.zeros(out.shape[1])
+for i in range(out.shape[1]):
+    y_prob = np.array(out[:,i])
+    for j in threshold:
+        y_pred = [1 if prob>=j else 0 for prob in y_prob]
+        acc.append( matthews_corrcoef(y_test[:,i],y_pred))
+    acc   = np.array(acc)
+    index = np.where(acc==acc.max()) 
+    accuracies.append(acc.max()) 
+    best_threshold[i] = threshold[index[0][0]]
+    acc = []
+
+print "best thresholds", best_threshold
+y_pred = np.array([[1 if out[i,j]>=best_threshold[j] else 0 for j in range(y_test.shape[1])] for i in range(len(y_test))])
+
+print("-"*40)
+print("Matthews Correlation Coefficient")
+print("Class wise accuracies")
+print(accuracies)
+
+print("other statistics\n")
+total_correctly_predicted = len([i for i in range(len(y_test)) if (y_test[i]==y_pred[i]).sum() == 5])
+print("Fully correct output")
+print(total_correctly_predicted)
+print(total_correctly_predicted/400.)
