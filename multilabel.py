@@ -1,3 +1,88 @@
+import os
+import sys
+
+"""
+12_PARCLIP_EWSR1_hg19    EWSR1
+13_PARCLIP_FUS_hg19    FUS
+15_PARCLIP_IGF2BP123_hg19    IGF2BP123
+17_ICLIP_HNRNPC_hg19    HNRNPC
+18_ICLIP_hnRNPL_Hela_group_3975_all-hnRNPL-Hela-hg19_sum_G_hg19--ensembl59_from_2337-2339-741_bedGraph-cDNA-hits-in-genome    hnRNPL
+1_PARCLIP_AGO1234_hg19    AGO1234
+21_PARCLIP_MOV10_Sievers_hg19    MOV10
+22_ICLIP_NSUN2_293_group_4007_all-NSUN2-293-hg19_sum_G_hg19--ensembl59_from_3137-3202_bedGraph-cDNA-hits-in-genome    NSUN2
+23_PARCLIP_PUM2_hg19    PUM2
+24_PARCLIP_QKI_hg19    QKI
+25_CLIPSEQ_SFRS1_hg19    SFRS1
+26_PARCLIP_TAF15_hg19    TAF15
+27_ICLIP_TDP43_hg19    TDP43
+28_ICLIP_TIA1_hg19    TIA1
+29_ICLIP_TIAL1_hg19    TIAL1
+30_ICLIP_U2AF65_Hela_iCLIP_ctrl_all_clusters    U2AF65
+4_HITSCLIP_Ago2_binding_clusters_2    Ago2
+7_CLIP-seq-eIF4AIII_2    eIF4AIII
+8_PARCLIP_ELAVL1_hg19    ELAVL1
+"""
+
+def get_rbps_name(rbp_file = 'RBPs'):
+    rbps = {}
+    with open(rbp_file) as fp:
+        for line in fp:
+            values = line.rstrip().split()
+            rbps[values[-1]] = values[0]
+    return rbps
+
+def read_fasta_file(path_dir):
+    fasta_file = path_dir +'/sequences.fa.gz'
+    seq_dict = {}    
+    fp = gzip.open(fasta_file, 'r')
+    name = ''
+    name_list = []
+    for line in fp:
+        line = line.rstrip()
+        #distinguish header from sequence
+        if line[0]=='>': #or line.startswith('>')
+            #it is the header
+            name = line[2:] #discarding the initial >#chr1,+,69224,69324; class:0
+            name_str = name.split(';')
+            label = name_str[1].split(':')[-1]
+            coors = name_str[0].split(',')
+            key = coors[0] + '_' + coors[2] + '_' + coors[3] + '_' + label
+            name_list.append(name)
+            seq_dict[name] = ''
+        else:
+            seq_dict[name] = seq_dict[name] + line.upper().replace('U', 'T')
+    fp.close()
+    
+    return seq_dict, name_list
+
+def read_bed_file(path_dir):
+    bed_file = path_dir + 'positions.bedGraph.gz'
+    bed_posi = {}
+    fp = gzip.open(bed_file, 'r')
+    for line in fp:
+        values = line.rstrip().split()
+        key = values[0] + '_' + values[1] + '_' + values[2] + '_' + values[-1]
+        bed_posi[key] = values[-1]
+    
+    fp.close()
+    
+    return bed_posi
+
+def run_predict():
+    rbps = get_rbps_name()
+    data_dir = '/home/panxy/eclipse/iONMF/datasets/clip/'
+    for protein, name in iteritems(rbps):
+        print protein, name
+        path_dir = data_dir + name + '/30000/training_sample_0'
+        
+        
+        
+        
+
+
+
+
+
 y_classes = df_y.idxmax(1, skipna=False)
 
 from sklearn.preprocessing import LabelEncoder
