@@ -28,7 +28,7 @@ def get_rbps_name(rbp_file = 'RBPs'):
     with open(rbp_file) as fp:
         for line in fp:
             values = line.rstrip().split()
-            rbps[values[-1]] = values[0]
+            rbps[values[0]] = values[1]
     return rbps
 
 def read_fasta_file(path_dir):
@@ -46,7 +46,7 @@ def read_fasta_file(path_dir):
             name_str = name.split(';')
             label = name_str[1].split(':')[-1]
             coors = name_str[0].split(',')
-            key = coors[0] + '_' + coors[2] + '_' + coors[3] + '_' + label
+            key = coors[0] + '_' + coors[2] + '_' + coors[3] #+ '_' + label
             name_list.append(name)
             seq_dict[name] = ''
         else:
@@ -61,8 +61,10 @@ def read_bed_file(path_dir):
     fp = gzip.open(bed_file, 'r')
     for line in fp:
         values = line.rstrip().split()
-        key = values[0] + '_' + values[1] + '_' + values[2] + '_' + values[-1]
-        bed_posi[key] = values[-1]
+        start = int(values[1]) - 50
+        end = int(values[1]) + 49
+        key = values[0] + '_' + str(start) + '_' + str(end) #+ '_' + values[-1]
+        bed_posi[key] = int(values[-1])
     
     fp.close()
     
@@ -71,11 +73,39 @@ def read_bed_file(path_dir):
 def run_predict():
     rbps = get_rbps_name()
     data_dir = '/home/panxy/eclipse/iONMF/datasets/clip/'
+    all_bed = {}
+    all_seq_dir = {}
+    
     for protein, name in iteritems(rbps):
         print protein, name
-        path_dir = data_dir + name + '/30000/training_sample_0'
-        
-        
+        path_dir = data_dir + protein + '/30000/training_sample_0'
+        all_bed[name] = read_bed_file(path_dir)
+        all_seq_dir[name] = read_fasta_file(data_dir)
+    
+    all_keys = set()
+    posi_keys = set()
+    peak_rbp = {}
+    for key in all_bed:
+        for sub_key, val in all_bed[key].iteritems():
+            all_keys.add(sub_key)
+            if val == 1:
+                posi_keys.add(sub_key)
+                peak_rbp.setdefault(sub_key, []).append(key)
+    all_rbps = rbps.values()
+    
+    fw = open('binding_seq.fa')
+    for site in posi_keys:
+        mul_pros = peak_rbp[site]
+        labels = ['0'] * len(all_rbps)
+        for pro in mul_pros:
+            ind = all_rbps.index(pro)
+            labels[index] = '1'
+        rbp_seqs = all_seq_dir[mul_pros[0]]
+        seq = rbp_seqs[site]
+        mylabel = "_".join(labels)
+        fw.write('>' + site + ',' + mylabel + '\n')
+        fw.write(seq + '\n')
+    fw.close()
         
         
 
